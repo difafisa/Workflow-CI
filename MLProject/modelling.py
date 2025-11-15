@@ -4,7 +4,7 @@ from helper import load_and_split
 import mlflow
 import mlflow.sklearn  
 
-data_path = "MLProject/transactions_preprocessing/metaverse_clean.csv"
+data_path = "transactions_preprocessing/metaverse_clean.csv"
 X_train, X_test, y_train, y_test = load_and_split(data_path)
 
 with mlflow.start_run():
