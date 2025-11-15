@@ -22,6 +22,9 @@ with mlflow.start_run():
     accuracy = model.score(X_test, y_test)
     mlflow.log_metric('accuracy', accuracy)
 
-    print("Logging model explicitly...")
-    mlflow.sklearn.log_model(model, "model")
-    print("Model logged.")
+    # log model — WAJIB
+    mlflow.sklearn.log_model(
+        sk_model=model,
+        artifact_path="model"
+    )
+    
