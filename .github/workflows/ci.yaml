@@ -23,11 +23,14 @@ jobs:
         environment-file: MLProject/conda.yaml 
         activate-environment: metaverse_env 
 
-    - name: Run MLflow Project
+    - name: Run MLflow Project with Debug
       shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow run . -e main
+        echo "=== Current directory structure ==="
+        find . -type f -name "*.py" -o -name "*.csv" -o -name "*.yaml" | sort
+        echo "=== Running MLflow project ==="
+        mlflow run . -e main --env-manager=local
 
     - name: Debug MLflow Runs
       shell: bash -l {0}
@@ -37,18 +40,13 @@ jobs:
         find mlruns -type f -name "meta.yaml" | head -10
         echo "=== Contents of mlruns/0/ ==="
         ls -la mlruns/0/
-
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: retrained-model
-        path: MLProject/mlruns/
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        echo "=== Latest run details ==="
+        LATEST_RUN=$(ls -t mlruns/0/ | grep -v '^models' | head -1)
+        if [ -n "$LATEST_RUN" ]; then
+          echo "Latest run: $LATEST_RUN"
+          echo "=== Contents of latest run ==="
+          find "mlruns/0/$LATEST_RUN" -type f | head -20
+        fi
 
     - name: Build MLflow Docker Image
       shell: bash -l {0} 
@@ -56,44 +54,35 @@ jobs:
         cd MLProject
         
         echo "Finding latest MLflow run..."
-        # Cari directory run yang valid (exclude 'models' dan file hidden)
-        LATEST_RUN_DIR=$(find mlruns/0 -mindepth 1 -maxdepth 1 -type d -name "[0-9a-f]*" -printf '%T@ %f\n' | sort -nr | head -n 1 | cut -d' ' -f2-)
+        # Cari run terbaru
+        LATEST_RUN_DIR=$(find mlruns/0 -mindepth 1 -maxdepth 1 -type d -name "[0-9a-f]*" -printf '%T@ %p\n' | sort -nr | head -n 1 | cut -d' ' -f2- | xargs basename)
         
         if [ -z "$LATEST_RUN_DIR" ]; then
-          echo "Error: No valid MLflow run directory found in mlruns/0/"
-          echo "Available directories:"
+          echo "Error: No valid MLflow run directory found"
           ls -la mlruns/0/
           exit 1
         fi
         
         echo "Latest run ID: $LATEST_RUN_DIR"
         
-        # Verifikasi artifacts directory exists
+        # Cek artifacts
         ARTIFACTS_PATH="mlruns/0/$LATEST_RUN_DIR/artifacts"
-        if [ ! -d "$ARTIFACTS_PATH" ]; then
-          echo "Error: Artifacts directory not found at $ARTIFACTS_PATH"
-          echo "Contents of run directory:"
-          ls -la "mlruns/0/$LATEST_RUN_DIR/"
-          exit 1
-        fi
-      
-        echo "--- Listing contents of artifacts directory ---"
-        ls -la "$ARTIFACTS_PATH/"
-        echo "--- End of directory listing ---"
-    
-        MODEL_PATH="$ARTIFACTS_PATH/model"
-        if [ ! -d "$MODEL_PATH" ]; then
-          echo "Error: Model directory not found at $MODEL_PATH"
-          echo "Available artifacts:"
-          find "$ARTIFACTS_PATH" -type f -name "*"
-          exit 1
-        fi
+        echo "=== Artifacts structure ==="
+        find "$ARTIFACTS_PATH" -type f 2>/dev/null || echo "No artifacts found"
         
-        echo "Building Docker image from model at $MODEL_PATH"
-        # Gunakan absolute path dengan file:// protocol
-        mlflow models build-docker -m "file://$(pwd)/$MODEL_PATH" -n metaverse_model:latest
+        # Gunakan run URI langsung
+        echo "Building Docker image using run URI"
+        mlflow models build-docker -m "runs:/$LATEST_RUN_DIR/model" -n metaverse_model:latest
 
     - name: Push Docker Image
       run: |
         docker tag metaverse_model:latest ${{ secrets.DOCKER_USERNAME }}/metaverse_model:latest
         docker push ${{ secrets.DOCKER_USERNAME }}/metaverse_model:latest
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mlflow-artifacts
+        path: |
+          MLProject/mlruns/
+          MLProject/mlruns/**/*
