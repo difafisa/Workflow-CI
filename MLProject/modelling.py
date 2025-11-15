@@ -1,8 +1,8 @@
-# modelling.py
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from helper import load_and_split
 import mlflow
+import mlflow.sklearn  # --- TAMBAHAN BARU ---
 
 data_path = "transactions_preprocessing/metaverse_clean.csv"
 X_train, X_test, y_train, y_test = load_and_split(data_path)
@@ -17,10 +17,11 @@ with mlflow.start_run():
         max_depth=37
     )
 
-    mlflow.autolog()
-
     model.fit(X_train, y_train)
 
     accuracy = model.score(X_test, y_test)
     mlflow.log_metric('accuracy', accuracy)
 
+    print("Logging model explicitly...")
+    mlflow.sklearn.log_model(model, "model")
+    print("Model logged.")
