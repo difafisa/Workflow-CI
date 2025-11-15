@@ -9,3 +9,4 @@ dependencies:
       - mlflow
       - pandas
       - numpy
+      - pkg_resources
