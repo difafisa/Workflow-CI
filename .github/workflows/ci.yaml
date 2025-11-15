@@ -16,9 +16,10 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: "3.12"
-        mamba-version: "*" 
-        channels: defaults
+        channels: conda-forge, defaults 
+        channel-priority: strict
         auto-activate-base: false
+        # File conda.yaml Anda akan digunakan untuk membuat env
         environment-file: MLProject/conda.yaml 
         activate-environment: metaverse_env 
 
@@ -44,7 +45,6 @@ jobs:
       shell: bash -l {0} 
       run: |
         cd MLProject
-        # Find the latest run directory to build the model
         LATEST_RUN_DIR=$(ls -t mlruns/0/ | head -n 1)
         MODEL_PATH="mlruns/0/$LATEST_RUN_DIR/artifacts/model"
         echo "Building Docker image from model at $MODEL_PATH"
