@@ -8,19 +8,19 @@ data_path = "transactions_preprocessing/metaverse_clean.csv"
 X_train, X_test, y_train, y_test = load_and_split(data_path)
 
 with mlflow.start_run():
-
-    mlflow.log_param('n_estimators', 505)
-    mlflow.log_param('max_depth', 37)
+    mlflow.log_param("n_estimators", 505)
+    mlflow.log_param("max_depth", 37)
 
     model = RandomForestClassifier(
         n_estimators=505,
         max_depth=37
     )
-
     model.fit(X_train, y_train)
 
     accuracy = model.score(X_test, y_test)
-    mlflow.log_metric('accuracy', accuracy)
+    mlflow.log_metric("accuracy", accuracy)
+
+    mlflow.sklearn.log_model(model, "model")
 
     # log model — WAJIB
     mlflow.sklearn.log_model(
