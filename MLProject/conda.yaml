@@ -1,12 +1,12 @@
 name: metaverse_env
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python=3.12
   - pip
   - setuptools  
-  - pip:
-      - scikit-learn
-      - mlflow
-      - pandas
-      - numpy
+  - scikit-learn
+  - mlflow
+  - pandas
+  - numpy
