@@ -20,11 +20,8 @@ with mlflow.start_run():
     accuracy = model.score(X_test, y_test)
     mlflow.log_metric("accuracy", accuracy)
 
-    mlflow.sklearn.log_model(model, "model")
-
-    # log model — WAJIB
+    # Hanya satu kali log model - HAPUS yang duplikat
     mlflow.sklearn.log_model(
         sk_model=model,
         artifact_path="model"
     )
-    
