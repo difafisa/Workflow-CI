@@ -12,6 +12,7 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
+
     - name: Setup Conda Environment
       uses: conda-incubator/setup-miniconda@v3
       with:
@@ -19,7 +20,6 @@ jobs:
         channels: conda-forge, defaults 
         channel-priority: strict
         auto-activate-base: false
-        # File conda.yaml Anda akan digunakan untuk membuat env
         environment-file: MLProject/conda.yaml 
         activate-environment: metaverse_env 
 
@@ -45,9 +45,24 @@ jobs:
       shell: bash -l {0} 
       run: |
         cd MLProject
-        LATEST_RUN_DIR=$(ls -t mlruns/0/ | head -n 1)
+        
+        echo "Finding latest MLflow run..."
+        LATEST_RUN_DIR=$(find mlruns/0 -mindepth 1 -maxdepth 1 -type d -printf '%T@ %f\n' | sort -nr | head -n 1 | cut -d' ' -f2-)
+        
+        if [ -z "$LATEST_RUN_DIR" ]; then
+          echo "Error: No MLflow run directory found in mlruns/0/"
+          exit 1
+        fi
+        
+        echo "Latest run ID: $LATEST_RUN_DIR"
+      
+        echo "--- Listing contents of artifacts directory ---"
+        ls -R "mlruns/0/$LATEST_RUN_DIR/artifacts/"
+        echo "--- End of directory listing ---"
+    
         MODEL_PATH="mlruns/0/$LATEST_RUN_DIR/artifacts/model"
         echo "Building Docker image from model at $MODEL_PATH"
+        
         mlflow models build-docker -m $MODEL_PATH -n metaverse_model:latest
 
     - name: Push Docker Image
