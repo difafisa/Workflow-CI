@@ -34,12 +34,12 @@ jobs:
           name: mlflow-artifacts
           path: MLProject/mlruns/
 
-      - name: Build & Push Docker Image
-        run: |
-          mlflow models build-docker \
-            -m mlruns/0/${RUN_ID}/artifacts/model \
-            -n difafisa/metaverse-mlflow:v1
+      # - name: Build & Push Docker Image
+      #   run: |
+      #     mlflow models build-docker \
+      #       -m mlruns/0/${RUN_ID}/artifacts/model \
+      #       -n difafisa/metaverse-mlflow:v1
 
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker push difafisa/metaverse-mlflow:v1
+      #     docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      #     docker push difafisa/metaverse-mlflow:v1
 
