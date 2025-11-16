@@ -1,8 +1,5 @@
-name: metaverse-pipeline
-
-conda_env: conda.yaml
+name: metaverse-mlproject
 
 entry_points:
   main:
     command: "python modelling.py"
-
