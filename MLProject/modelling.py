@@ -1,4 +1,3 @@
-import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from helper import load_and_split
 import mlflow
