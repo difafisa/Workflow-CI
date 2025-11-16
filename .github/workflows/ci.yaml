@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -26,14 +26,10 @@ jobs:
       - name: Run MLflow Project
         run: |
           cd MLProject
-          set -x  # debug mode, print command detail
-          ls -R   # list semua file
-          python modelling.py || exit 1
           mlflow run . --no-conda
 
-
       - name: Save MLflow artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
           path: MLProject/mlruns/
