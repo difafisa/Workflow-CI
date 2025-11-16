@@ -1,7 +1,7 @@
-name: metaverse_retrain_project
-
-conda_env: conda.yaml
+name: metaverse_project
 
 entry_points:
   main:
     command: "python modelling.py"
+
+conda_env: conda.yaml
